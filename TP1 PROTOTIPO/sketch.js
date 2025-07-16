@@ -7,7 +7,7 @@ let t = 0; // Variable de tiempo para la vibración lenta
 function preload(){
   imgFondo = loadImage("data/imgfondo3.jpg");
 
-  imgBlanco= loadImage("data/blanco02.png");
+  
   
   imgAmarillo = loadImage("data/amarillo01.png");
   imgNegro= loadImage("data/negro01.png");
@@ -21,24 +21,32 @@ function preload(){
 }
 
 function setup() {
-  createCanvas(windowWidth, windowHeight);
+  createCanvas(500, windowHeight);
   mic = new p5.AudioIn();
   mic.start();
+  userStartAudio(); // Importante para navegadores modernos
+  fft = new p5.FFT();
+  fft.setInput(mic);
 }
 
 let vibrar = false;
 let vibrarLento = false;
-let colorVibrante = false;
-let colorOscuro = false;
+
+
+
+
+let colorNegro = [0, 0, 0];
+
+let colorRojo = [173, 5, 0];
+
+let colorAmarillo = [240, 174, 0];
+
+let colorAzul = [19, 49, 154];
 
 let offsetNegro = 0;
-let offsetNegro1 = 0;
-let offsetNegro2 = 0;
-let offsetOtros = 0;
+let offsetColor = 0;
 let velNegro = 0;
-let velNegro1 = 0;
-let velNegro2 = 0;
-let velOtros = 0;
+let velColor = 0;
 
 function draw() {
   background(90);
@@ -46,187 +54,125 @@ function draw() {
   ellipseMode(CORNER);
 
   let micLevel = mic.getLevel();
-  fill(255);
-  ellipse(1,1, micLevel*1000);
+
+  let spectrum = fft.analyze();
+  let graves = fft.getEnergy("bass");
+  let agudos = fft.getEnergy("treble");
+
+  if (agudos > 30) {
+    velColor = 3;
+  } else {
+    velColor = 0;
+  }
+  if (graves > 30) {
+    velNegro = -3;
+  } else {
+    velNegro = 0;
+  }
 
   t += 0.02; // Incrementa el tiempo para la vibración lenta
 
   // Vibración individual para cada imagen
-  let vibNegroX, vibNegroY, vibNegro2X, vibNegro2Y;
-  let vibAmarilloX, vibAmarilloY, vibRojoX, vibRojoY;
-  let vibAzulX, vibAzulY, vibAmarillo2X, vibAmarillo2Y;
-  let vibRojo2X, vibRojo2Y, vibAzul2X, vibAzul2Y;
+  let vibNegroX, vibNegroY, vibAmarilloX, vibAmarilloY, vibRojoX, vibRojoY, vibAzulX, vibAzulY;
+  
 
   if (vibrarLento) {
     // Vibración lenta y amplia usando sin/cos
-    vibNegroX = sin(t) * 30;
-    vibNegroY = cos(t) * 30;
-    vibNegro2X = sin(t+1) * 30;
-    vibNegro2Y = cos(t+1) * 30;
-    vibAmarilloX = sin(t+2) * 30;
-    vibAmarilloY = cos(t+2) * 30;
-    vibRojoX = sin(t+3) * 30;
-    vibRojoY = cos(t+3) * 30;
-    vibAzulX = sin(t+4) * 30;
-    vibAzulY = cos(t+4) * 30;
-    vibAmarillo2X = sin(t+5) * 30;
-    vibAmarillo2Y = cos(t+5) * 30;
-    vibRojo2X = sin(t+6) * 30;
-    vibRojo2Y = cos(t+6) * 30;
-    vibAzul2X = sin(t+7) * 30;
-    vibAzul2Y = cos(t+7) * 30;
+    vibNegroX = sin(t) * 50;
+    vibNegroY = cos(t) * 50;
+    vibAmarilloX = sin(t+1) * 50;
+    vibAmarilloY = cos(t+1) * 50;
+    vibRojoX = sin(t+2) * 50;
+    vibRojoY = cos(t+2) * 50;
+    vibAzulX = sin(t+3) * 50;
+    vibAzulY = cos(t+3) * 50;
+  
   } else if (vibrar) {
     // Vibración rápida y pequeña
     vibNegroX = random(-3,3);
     vibNegroY = random(-3,3);
-    vibNegro2X = random(-3,3);
-    vibNegro2Y = random(-3,3);
+    
     vibAmarilloX = random(-3,3);
     vibAmarilloY = random(-3,3);
     vibRojoX = random(-3,3);
     vibRojoY = random(-3,3);
     vibAzulX = random(-3,3);
     vibAzulY = random(-3,3);
-    vibAmarillo2X = random(-3,3);
-    vibAmarillo2Y = random(-3,3);
-    vibRojo2X = random(-3,3);
-    vibRojo2Y = random(-3,3);
-    vibAzul2X = random(-3,3);
-    vibAzul2Y = random(-3,3);
+    
+    
   } else {
     // Sin vibración
-    vibNegroX = vibNegroY = vibNegro2X = vibNegro2Y = 0;
-    vibAmarilloX = vibAmarilloY = vibRojoX = vibRojoY = 0;
-    vibAzulX = vibAzulY = vibAmarillo2X = vibAmarillo2Y = 0;
-    vibRojo2X = vibRojo2Y = vibAzul2X = vibAzul2Y = 0;
+    vibNegroX = vibNegroY  = vibAmarilloX = vibAmarilloY = vibRojoX = vibRojoY = vibAzulX = vibAzulY  = 0;
+    
+    
+   
   }
 
-  // Antes de cada image(), pon el tint adecuado
-  if (colorVibrante) {
-    tint(255, 255, 0, 255); // Amarillo brillante (puedes variar)
-  } else if (colorOscuro) {
-    tint(50, 50, 50, 180); // Oscuro y apagado
-  } else {
-    noTint();
-  }
-  image(imgNegro, 320 + vibNegroX + offsetNegro1, 25 + vibNegroY, width, height);
+  
 
-  if (colorVibrante) {
-    tint(0, 255, 255, 255); // Cian brillante
-  } else if (colorOscuro) {
-    tint(50, 50, 80, 180);
-  } else {
-    noTint();
-  }
-  image(imgNegro2, -200 + vibNegro2X + offsetNegro2, -150 + vibNegro2Y, width, height);
+ 
+  //posicion de las manchas con sus colores originales
+tint(colorNegro);
+image(imgNegro, 200 + vibNegroX + offsetNegro, 25 + vibNegroY, width, height);
+image(imgNegro2, -100 + vibNegroX + offsetNegro, -150 + vibNegroY, width, height);
+noTint();
 
-  if (colorVibrante) {
-    tint(255, 0, 255, 255); // Magenta brillante
-  } else if (colorOscuro) {
-    tint(80, 50, 50, 180);
-  } else {
-    noTint();
-  }
-  image(imgAmarillo, -100 + vibAmarilloX + offsetOtros, 0 + vibAmarilloY, 350, height); 
+tint(colorRojo);
+image(imgRojo, 0 + vibRojoX + offsetColor, -100 + vibRojoY, width/2, height/2);
+image(imgRojo2, 70 + vibRojoX + offsetColor, 400 + vibRojoY, width/2, height/2); 
+noTint();
 
-  if (colorVibrante) {
-    tint(0, 255, 0, 255); // Verde brillante
-  } else if (colorOscuro) {
-    tint(50, 80, 50, 180);
-  } else {
-    noTint();
-  }
-  image(imgRojo, 0 + vibRojoX + offsetOtros, -100 + vibRojoY, width/2, height/2);
+tint(colorAmarillo);
+image(imgAmarillo, -100 + vibAmarilloX + offsetColor, 0 + vibAmarilloY, 350, height); 
+image(imgAmarillo2, 300 + vibAmarilloX + offsetColor, 0 + vibAmarilloY, 350, height);
+noTint();
 
-  if (colorVibrante) {
-    tint(0, 0, 255, 255); // Azul brillante
-  } else if (colorOscuro) {
-    tint(50, 50, 80, 180);
-  } else {
-    noTint();
-  }
-  image(imgAzul, -100 + vibAzulX + offsetOtros, 400 + vibAzulY, width/2, height/2);
+tint(colorAzul);
+image(imgAzul, -100 + vibAzulX + offsetColor, 400 + vibAzulY, width/2, height/2);
+image(imgAzul2, 400 + vibAzulX + offsetColor, -180 + vibAzulY, width/2, height/2);
+noTint(); 
+  
+  
+  fill(255);
+  textSize(16);
+  text("Graves: " + graves, 10, 30);
+  text("Agudos: " + agudos, 10, 50);
 
-  if (colorVibrante) {
-    tint(255, 165, 0, 255); // Naranja brillante
-  } else if (colorOscuro) {
-    tint(80, 50, 20, 180);
-  } else {
-    noTint();
-  }
-  image(imgAmarillo2, 600 + vibAmarillo2X + offsetOtros, 0 + vibAmarillo2Y, 350, height); 
-
-  if (colorVibrante) {
-    tint(75, 0, 130, 255); // Índigo brillante
-  } else if (colorOscuro) {
-    tint(20, 20, 50, 180);
-  } else {
-    noTint();
-  }
-  image(imgRojo2, 70 + vibRojo2X + offsetOtros, 350 + vibRojo2Y, width/2, height/2);
-
-  if (colorVibrante) {
-    tint(238, 130, 238, 255); // Violeta brillante
-  } else if (colorOscuro) {
-    tint(50, 20, 50, 180);
-  } else {
-    noTint();
-  }
-  image(imgAzul2, 500 + vibAzul2X + offsetOtros, -100 + vibAzul2Y, width/2, height/2);
-
-  noTint(); // Al final, para no afectar otros dibujos
-
-  offsetNegro1 += velNegro1;
-  offsetNegro2 += velNegro2;
-
-  offsetNegro1 = (offsetNegro1 + width + imgNegro.width) % (width + imgNegro.width);
-  offsetNegro2 = (offsetNegro2 + width + imgNegro2.width) % (width + imgNegro2.width);
-  offsetOtros += velOtros;
-
-  // Luego aplica el módulo para que vuelvan a entrar por el otro lado:
-  offsetOtros = (offsetOtros + width + 350) % (width + 350); // 350 es el ancho de imgAmarillo, por ejemplo
+  // Actualiza los offsets con la velocidad
+  offsetNegro += velNegro;
+  offsetColor += velColor;
+fill(255);
+  ellipse(1,1, micLevel*1000);
+  
 }
 
 // Activa/desactiva vibración con la tecla "v"
 function keyPressed() {
-  if (key === 'v' || key === 'V') {
+  if (key === 'z' ) {
     vibrar = !vibrar;
     vibrarLento = false;
   }
-  if (key === 'l' || key === 'L') {
+  if (key === 'x' ) {
     vibrarLento = !vibrarLento;
     vibrar = false;
   }
-  if (key === 'c' || key === 'C') { // Colores vibrantes
-    colorVibrante = true;
-    colorOscuro = false;
+  
+
+  if (key === "q") {
+    colorNegro = [250,250,250];
+    colorRojo = [252,111,74];
+    colorAmarillo = [254,243,103];
+    colorAzul = [104,205,253];
   }
-  if (key === 'o' || key === 'O') { // Colores oscuros
-    colorOscuro = true;
-    colorVibrante = false;
-  }
-  if (key === 'n' || key === 'N') { // Normal
-    colorVibrante = false;
-    colorOscuro = false;
-  }
-  if (key === 'a' || key === 'A') {
-    velNegro1 = -3;
-    velNegro2 = -3;
-  }
-  if (key === 'd' || key === 'D') {
-    velOtros = 3; // velocidad hacia la derecha
+  if (key === "e") {
+    colorNegro = [0,0,0];
+    colorRojo = [54,7,2];
+    colorAmarillo = [117,91,0];
+    colorAzul = [1,18,61];
   }
 }
 
-function keyReleased() {
-  if (key === 'a' || key === 'A') {
-    velNegro1 = 0;
-    velNegro2 = 0;
-  }
-  if (key === 'd' || key === 'D') {
-    velOtros = 0;
-  }
-}
+
 
 
 
