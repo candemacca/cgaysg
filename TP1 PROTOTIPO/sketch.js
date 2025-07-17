@@ -21,9 +21,10 @@ function preload(){
 }
 
 function setup() {
-  createCanvas(500, windowHeight);
+  createCanvas(windowWidth/2 - 100, windowHeight/2 + 240);
   mic = new p5.AudioIn();
   mic.start();
+  mic.amp(1); // antes era 0.5
   userStartAudio(); // Importante para navegadores modernos
   fft = new p5.FFT();
   fft.setInput(mic);
@@ -31,9 +32,7 @@ function setup() {
 
 let vibrar = false;
 let vibrarLento = false;
-
-
-
+let sonidoActivoFrames = 0;
 
 let colorNegro = [0, 0, 0];
 
@@ -59,12 +58,30 @@ function draw() {
   let graves = fft.getEnergy("bass");
   let agudos = fft.getEnergy("treble");
 
-  if (agudos > 30) {
+
+if (micLevel > 0.06) { // umbral para colores saturados
+  colorNegro = [250,250,250];
+  colorRojo = [252,111,74];
+  colorAmarillo = [254,243,103];
+  colorAzul = [104,205,253];
+} else if (micLevel > 0.03) { // umbral más bajo
+  colorNegro = [0,0,0];
+  colorRojo = [54,7,2];
+  colorAmarillo = [117,91,0];
+  colorAzul = [1,18,61];} else {
+  // Colores normales (originales)
+  colorNegro = [0, 0, 0];
+  colorRojo = [173, 5, 0];
+  colorAmarillo = [240, 174, 0];
+  colorAzul = [19, 49, 154];
+}
+
+  if (agudos > 15) {
     velColor = 3;
   } else {
     velColor = 0;
   }
-  if (graves > 30) {
+  if (graves > 110) { // umbral más alto para graves
     velNegro = -3;
   } else {
     velNegro = 0;
@@ -136,40 +153,36 @@ noTint();
   fill(255);
   textSize(16);
   text("Graves: " + graves, 10, 30);
-  text("Agudos: " + agudos, 10, 50);
+  text("Agudos: " + agudos, 10, 70);
+  text("Volumen: " + micLevel, 10, 50);
 
   // Actualiza los offsets con la velocidad
   offsetNegro += velNegro;
   offsetColor += velColor;
-fill(255);
-  ellipse(1,1, micLevel*1000);
-  
-}
 
-// Activa/desactiva vibración con la tecla "v"
-function keyPressed() {
-  if (key === 'z' ) {
-    vibrar = !vibrar;
+  // Reinicia posiciones si se salen del canvas
+  if (offsetNegro < -width) {
+    offsetNegro = 0;
+  }
+  if (offsetColor > width) {
+    offsetColor = 0;
+  }
+
+// Control de vibración según duración del sonido
+if (micLevel > 0.06) {
+  sonidoActivoFrames++;
+  if (sonidoActivoFrames > 20) { // Si el sonido dura más de 20 frames (~1/3 seg)
+    vibrarLento = true;
+    vibrar = false;
+  } else {
+    vibrar = true;
     vibrarLento = false;
   }
-  if (key === 'x' ) {
-    vibrarLento = !vibrarLento;
-    vibrar = false;
-  }
-  
-
-  if (key === "q") {
-    colorNegro = [250,250,250];
-    colorRojo = [252,111,74];
-    colorAmarillo = [254,243,103];
-    colorAzul = [104,205,253];
-  }
-  if (key === "e") {
-    colorNegro = [0,0,0];
-    colorRojo = [54,7,2];
-    colorAmarillo = [117,91,0];
-    colorAzul = [1,18,61];
-  }
+} else {
+  vibrar = false;
+  vibrarLento = false;
+  sonidoActivoFrames = 0;
+}
 }
 
 
