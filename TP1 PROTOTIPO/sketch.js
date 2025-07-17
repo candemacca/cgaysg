@@ -2,12 +2,10 @@ let mic;
 let imgBlanco, imgNegro, imgAzul, imgRojo, imgAmarillo, imgNegro2, imgAmarillo2, imgRojo2, imgAzul2;
 let imgFondo;
 
-let t = 0; // Variable de tiempo para la vibración lenta
+let t = 0; //variable de tiempo para la vibración lenta
 
 function preload(){
   imgFondo = loadImage("data/imgfondo3.jpg");
-
-  
   
   imgAmarillo = loadImage("data/amarillo01.png");
   imgNegro= loadImage("data/negro01.png");
@@ -21,11 +19,11 @@ function preload(){
 }
 
 function setup() {
-  createCanvas(windowWidth/2 - 100, windowHeight/2 + 240);
+  createCanvas(windowWidth/2, windowHeight);
   mic = new p5.AudioIn();
   mic.start();
-  mic.amp(1); // antes era 0.5
-  userStartAudio(); // Importante para navegadores modernos
+  mic.amp(1); 
+  userStartAudio(); 
   fft = new p5.FFT();
   fft.setInput(mic);
 }
@@ -59,42 +57,43 @@ function draw() {
   let agudos = fft.getEnergy("treble");
 
 
-if (micLevel > 0.06) { // umbral para colores saturados
+if (micLevel > 0.06) { //umbral para colores saturados
   colorNegro = [250,250,250];
   colorRojo = [252,111,74];
   colorAmarillo = [254,243,103];
   colorAzul = [104,205,253];
-} else if (micLevel > 0.03) { // umbral más bajo
+} else if (micLevel > 0.03) { //umbral para colores apagados
   colorNegro = [0,0,0];
   colorRojo = [54,7,2];
   colorAmarillo = [117,91,0];
-  colorAzul = [1,18,61];} else {
-  // Colores normales (originales)
+  colorAzul = [1,18,61];} 
+  else {
+  //colores normales (originales)
   colorNegro = [0, 0, 0];
   colorRojo = [173, 5, 0];
   colorAmarillo = [240, 174, 0];
   colorAzul = [19, 49, 154];
 }
 
-  if (agudos > 15) {
+  if (agudos > 1) { //umbral para agudos
     velColor = 3;
   } else {
     velColor = 0;
   }
-  if (graves > 110) { // umbral más alto para graves
+  if (graves > 110) { //umbral para graves
     velNegro = -3;
   } else {
     velNegro = 0;
   }
 
-  t += 0.02; // Incrementa el tiempo para la vibración lenta
+  t += 0.02; //incrementa el tiempo para la vibración lenta
 
-  // Vibración individual para cada imagen
+  //vibración individual para cada imagen
   let vibNegroX, vibNegroY, vibAmarilloX, vibAmarilloY, vibRojoX, vibRojoY, vibAzulX, vibAzulY;
   
 
   if (vibrarLento) {
-    // Vibración lenta y amplia usando sin/cos
+    //vibración lenta y amplia 
     vibNegroX = sin(t) * 50;
     vibNegroY = cos(t) * 50;
     vibAmarilloX = sin(t+1) * 50;
@@ -105,7 +104,7 @@ if (micLevel > 0.06) { // umbral para colores saturados
     vibAzulY = cos(t+3) * 50;
   
   } else if (vibrar) {
-    // Vibración rápida y pequeña
+    //vibración rápida y pequeña
     vibNegroX = random(-3,3);
     vibNegroY = random(-3,3);
     
@@ -118,7 +117,7 @@ if (micLevel > 0.06) { // umbral para colores saturados
     
     
   } else {
-    // Sin vibración
+    //sin vibración
     vibNegroX = vibNegroY  = vibAmarilloX = vibAmarilloY = vibRojoX = vibRojoY = vibAzulX = vibAzulY  = 0;
     
     
@@ -148,19 +147,11 @@ tint(colorAzul);
 image(imgAzul, -100 + vibAzulX + offsetColor, 400 + vibAzulY, width/2, height/2);
 image(imgAzul2, 400 + vibAzulX + offsetColor, -180 + vibAzulY, width/2, height/2);
 noTint(); 
-  
-  
-  fill(255);
-  textSize(16);
-  text("Graves: " + graves, 10, 30);
-  text("Agudos: " + agudos, 10, 70);
-  text("Volumen: " + micLevel, 10, 50);
 
-  // Actualiza los offsets con la velocidad
   offsetNegro += velNegro;
   offsetColor += velColor;
 
-  // Reinicia posiciones si se salen del canvas
+  //reinicia posiciones si se salen del canvas
   if (offsetNegro < -width) {
     offsetNegro = 0;
   }
@@ -168,10 +159,10 @@ noTint();
     offsetColor = 0;
   }
 
-// Control de vibración según duración del sonido
+//control de vibración según duración del sonido
 if (micLevel > 0.06) {
   sonidoActivoFrames++;
-  if (sonidoActivoFrames > 20) { // Si el sonido dura más de 20 frames (~1/3 seg)
+  if (sonidoActivoFrames > 20) { 
     vibrarLento = true;
     vibrar = false;
   } else {
